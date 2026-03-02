@@ -1,10 +1,9 @@
 import os
 from src.data.preprocessing import load_data, clean_data, save_cleaned_data
+from src.data.feature_engineering import create_combined_text_feature, create_weighted_rating
 
-# Get base directory (ML_Project folder)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Exact dataset file name
 RAW_PATH = os.path.join(
     BASE_DIR,
     "data",
@@ -19,13 +18,17 @@ PROCESSED_PATH = os.path.join(
     "cleaned_products.csv"
 )
 
-# Load dataset
+# Load
 df = load_data(RAW_PATH)
 
-# Clean dataset
+# Clean
 df_clean = clean_data(df)
 
-# Save cleaned dataset
-save_cleaned_data(df_clean, PROCESSED_PATH)
+# Feature Engineering
+df_features = create_combined_text_feature(df_clean)
+df_features = create_weighted_rating(df_features)
 
-print("Preprocessing completed successfully!")
+# Save
+save_cleaned_data(df_features, PROCESSED_PATH)
+
+print("Preprocessing + Feature Engineering completed successfully!")
