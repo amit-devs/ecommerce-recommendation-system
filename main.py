@@ -1,16 +1,31 @@
-# This is a sample Python script.
+import os
+from src.data.preprocessing import load_data, clean_data, save_cleaned_data
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+# Get base directory (ML_Project folder)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Exact dataset file name
+RAW_PATH = os.path.join(
+    BASE_DIR,
+    "data",
+    "raw",
+    "marketing_sample_for_walmart_com-walmart_com_product_review__20200701_20201231__5k_data.tsv"
+)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+PROCESSED_PATH = os.path.join(
+    BASE_DIR,
+    "data",
+    "processed",
+    "cleaned_products.csv"
+)
 
+# Load dataset
+df = load_data(RAW_PATH)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+# Clean dataset
+df_clean = clean_data(df)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+# Save cleaned dataset
+save_cleaned_data(df_clean, PROCESSED_PATH)
+
+print("Preprocessing completed successfully!")
