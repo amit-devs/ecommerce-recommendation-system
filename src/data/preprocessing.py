@@ -1,60 +1,72 @@
 import pandas as pd
 
 
-def load_data(filepath: str) -> pd.DataFrame:
+def load_data(products_path: str, reviews_path: str):
     """
-    Load dataset from given file path.
+    Load products and reviews datasets.
     """
-    df = pd.read_csv(filepath, sep="\t")
+
+    products = pd.read_csv(products_path)
+    reviews = pd.read_csv(reviews_path)
+
+    return products, reviews
+
+
+def merge_data(products: pd.DataFrame, reviews: pd.DataFrame) -> pd.DataFrame:
+    """
+    Merge products and reviews using product ASIN.
+    """
+
+    df = pd.merge(
+        reviews,
+        products,
+        left_on="productASIN",
+        right_on="asin",
+        how="inner"
+    )
+
     return df
 
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Perform basic data cleaning:
-    - Remove duplicates
-    - Handle missing values
-    - Convert rating to numeric
-    - Standardize text columns
+    Clean merged dataset.
     """
 
-    # Remove duplicate rows
-    df = df.drop_duplicates()
+    # Keep only important columns
+    df = df[[
+        "reviewID",
+        "productASIN",
+        "rating",
+        "title",
+        "brand_name",
+        "about_item",
+        "product_description",
+        "breadcrumbs"
+    ]]
 
-    # Drop rows missing critical columns
-    df = df.dropna(subset=[
-        "Product Name",
-        "Product Description",
-        "Product Rating"
-    ])
+    # Remove missing values
+    df = df.dropna()
+
+    # Rename columns to standard format
+    df = df.rename(columns={
+        "reviewID": "user_id",
+        "productASIN": "product_id",
+        "title": "product_name"
+    })
 
     # Convert rating to numeric
-    df["Product Rating"] = pd.to_numeric(
-        df["Product Rating"],
-        errors="coerce"
-    )
+    df["rating"] = pd.to_numeric(df["rating"], errors="coerce")
 
-    # Fill missing review counts with 0
-    if "Product Reviews Count" in df.columns:
-        df["Product Reviews Count"] = df["Product Reviews Count"].fillna(0)
-
-    # Standardize important text columns
-    text_columns = [
-        "Product Name",
-        "Product Brand",
-        "Product Category",
-        "Product Description"
-    ]
-
-    for col in text_columns:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.lower()
+    # Drop invalid ratings
+    df = df.dropna(subset=["rating"])
 
     return df
 
 
 def save_cleaned_data(df: pd.DataFrame, output_path: str):
     """
-    Save cleaned dataset to CSV.
+    Save cleaned dataset to processed folder.
     """
+
     df.to_csv(output_path, index=False)
