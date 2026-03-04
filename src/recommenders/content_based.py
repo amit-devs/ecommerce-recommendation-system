@@ -18,7 +18,7 @@ class ContentBasedRecommender:
 
         query = query.lower()
 
-        matches = self.df[self.df["Product Name"].str.lower().str.contains(query)]
+        matches = self.df[self.df["product_name"].str.lower().str.contains(query)]
 
         if matches.empty:
             print("Product not found in dataset.")
@@ -27,7 +27,7 @@ class ContentBasedRecommender:
         # choose best match
         idx = matches["weighted_rating"].idxmax()
 
-        product_category = self.df.loc[idx, "Product Category"]
+        product_category = self.df.loc[idx, "breadcrumbs"]
 
         similarity_scores = list(enumerate(self.similarity_matrix[idx]))
 
@@ -42,7 +42,7 @@ class ContentBasedRecommender:
         for i, score in similarity_scores[1:]:
 
             # keep only same category
-            if self.df.loc[i, "Product Category"] != product_category:
+            if self.df.loc[i, "breadcrumbs"] != product_category:
                 continue
 
             if score < 0.15:
@@ -57,9 +57,9 @@ class ContentBasedRecommender:
 
         results = self.df.iloc[product_indices][
             [
-                "Product Name",
-                "Product Brand",
-                "Product Category",
+                "product_name",
+                "brand_name",
+                "breadcrumbs",
                 "weighted_rating"
             ]
         ]

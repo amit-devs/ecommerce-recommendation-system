@@ -1,42 +1,21 @@
-from src.data.preprocessing import (
-    load_data,
-    merge_data,
-    clean_data,
-    save_cleaned_data
-)
-
-from src.data.feature_engineering import (
-    create_combined_text_feature,
-    create_weighted_rating
-)
+from src.recommenders.content_based import ContentBasedRecommender
 
 
-def run_pipeline():
+def main():
 
-    print("Loading datasets...")
-
-    products, reviews = load_data(
-        "data/raw/products.csv",
-        "data/raw/reviews.csv"
+    recommender = ContentBasedRecommender(
+        data_path="data/processed/cleaned_products.csv",
+        tfidf_matrix_path="models/amit/content_based/tfidf_matrix.pkl"
     )
 
-    print("Merging datasets...")
-    df = merge_data(products, reviews)
+    product = input("Enter product name: ")
 
-    print("Cleaning dataset...")
-    df = clean_data(df)
+    results = recommender.recommend(product, top_n=5)
 
-    print("Creating text features...")
-    df = create_combined_text_feature(df)
-
-    print("Creating weighted ratings...")
-    df = create_weighted_rating(df)
-
-    print("Saving processed dataset...")
-    save_cleaned_data(df, "data/processed/cleaned_products.csv")
-
-    print("Preprocessing + Feature Engineering completed successfully!")
+    if results is not None:
+        print("\nTop Recommendations:\n")
+        print(results)
 
 
 if __name__ == "__main__":
-    run_pipeline()
+    main()
