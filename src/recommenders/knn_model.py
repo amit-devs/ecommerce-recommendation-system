@@ -37,8 +37,6 @@ class KNNRecommender:
         # Train model
         self.model.fit(self.user_item_matrix)
 
-        print("KNN Model trained successfully")
-
     # ---------------------------------------------------
     # Recommendation Function
     # ---------------------------------------------------
@@ -47,13 +45,11 @@ class KNNRecommender:
 
         # Check if product exists
         if product_name not in self.product_name_to_id:
-            print("Product not found in dataset")
             return None
 
         product_id = self.product_name_to_id[product_name]
 
         if product_id not in self.user_item_matrix.index:
-            print("Product not present in interaction matrix")
             return None
 
         # Get product vector
@@ -71,9 +67,9 @@ class KNNRecommender:
             if similar_product_id == product_id:
                 continue
 
-            product_name = self.product_id_to_name.get(similar_product_id)
+            similar_product_name = self.product_id_to_name.get(similar_product_id)
 
-            if product_name not in recommendations:
-                recommendations.append(product_name)
+            if similar_product_name not in recommendations:
+                recommendations.append(similar_product_name)
 
         return recommendations[:top_n]

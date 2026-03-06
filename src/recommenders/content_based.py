@@ -24,8 +24,8 @@ class ContentBasedRecommender:
         # Find matching products
         matches = self.df[self.df["product_name"].str.lower().str.contains(query)]
 
+        # If product not found → return None (NO printing here)
         if matches.empty:
-            print("Product not found in dataset.")
             return None
 
         # Choose best match based on weighted rating
