@@ -21,11 +21,11 @@ def evaluate_results(results):
         print("\nNo recommendations to evaluate.")
         return
 
-    # Ensure results is DataFrame
+    # Ensure DataFrame format
     if isinstance(results, list):
         rec_df = pd.DataFrame({"product_name": results})
     else:
-        rec_df = results
+        rec_df = results.copy()
 
     merged = rec_df.merge(
         df[["product_name", "rating"]],
@@ -33,7 +33,9 @@ def evaluate_results(results):
         how="left"
     )
 
-    # Define relevance (rating >= 4)
+    merged["rating"] = merged["rating"].fillna(0)
+
+    # Define relevance
     merged["actual"] = merged["rating"].apply(lambda x: 1 if x >= 4 else 0)
 
     # Recommended items are predicted relevant
@@ -74,7 +76,7 @@ def run_content_based():
 
     print("\nContent-Based Recommendations:\n")
 
-    for i, row in results.iterrows():
+    for _, row in results.iterrows():
         print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
 
     evaluate_results(results)
@@ -100,7 +102,7 @@ def run_knn():
 
     print("\nKNN Recommendations:\n")
 
-    for i, row in results.iterrows():
+    for _, row in results.iterrows():
         print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
 
     evaluate_results(results)
@@ -126,8 +128,19 @@ def run_hybrid():
 
     print("\nHybrid Recommendations:\n")
 
-    for i, row in results.iterrows():
-        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
+    for _, row in results.iterrows():
+
+        if "hybrid_score" in row:
+            print(
+                f"{row['product_name']} | "
+                f"Rating: {round(row['weighted_rating'],2)} | "
+                f"Hybrid Score: {round(row['hybrid_score'],2)}"
+            )
+        else:
+            print(
+                f"{row['product_name']} | "
+                f"Rating: {round(row['weighted_rating'],2)}"
+            )
 
     evaluate_results(results)
 

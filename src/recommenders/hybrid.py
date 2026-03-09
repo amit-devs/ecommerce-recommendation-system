@@ -21,21 +21,23 @@ class HybridRecommender:
             data_path=data_path
         )
 
-    def recommend(self, product_name, top_n=5):
+    # ---------------------------------------------------
+    # Hybrid Recommendation
+    # ---------------------------------------------------
+
+    def recommend(self, query, top_n=5):
 
         # Get recommendations from both models
-        content_recs = self.content_model.recommend(product_name, top_n=top_n)
-        knn_recs = self.knn_model.recommend(product_name, top_n=top_n)
+        content_recs = self.content_model.recommend(query, top_n=top_n)
+        knn_recs = self.knn_model.recommend(query, top_n=top_n)
 
-        # If both models return nothing
         if content_recs is None and knn_recs is None:
             return None
 
-        # Convert to DataFrame safely
         content_df = pd.DataFrame(content_recs) if content_recs is not None else pd.DataFrame()
         knn_df = pd.DataFrame(knn_recs) if knn_recs is not None else pd.DataFrame()
 
-        # Add source labels
+        # Add model source
         if not content_df.empty:
             content_df["source"] = "content"
 
@@ -45,32 +47,40 @@ class HybridRecommender:
         # Merge results
         hybrid_df = pd.concat([content_df, knn_df], ignore_index=True)
 
-        # Remove rows without product name
-        if "product_name" in hybrid_df.columns:
-            hybrid_df = hybrid_df.dropna(subset=["product_name"])
+        if hybrid_df.empty:
+            return None
 
-        # Remove duplicates
+        hybrid_df = hybrid_df.dropna(subset=["product_name"])
+
+        # Count how many models recommended the product
+        model_count = hybrid_df.groupby("product_name")["source"].count()
+
         hybrid_df = hybrid_df.drop_duplicates(subset="product_name")
 
-        # Hybrid scoring
-        hybrid_df["hybrid_score"] = hybrid_df["source"].map({
-            "content": 0.6,
-            "knn": 0.4
-        })
+        hybrid_df["model_votes"] = hybrid_df["product_name"].map(model_count)
 
-        # Sorting
-        if "weighted_rating" in hybrid_df.columns:
-            hybrid_df = hybrid_df.sort_values(
-                by=["hybrid_score", "weighted_rating"],
-                ascending=False
-            )
-        else:
-            hybrid_df = hybrid_df.sort_values(
-                by="hybrid_score",
-                ascending=False
-            )
+        # Hybrid scoring
+        hybrid_df["hybrid_score"] = (
+            hybrid_df["model_votes"] * 0.5 +
+            hybrid_df["weighted_rating"] * 0.5
+        )
+
+        # Sort by hybrid score
+        hybrid_df = hybrid_df.sort_values(
+            by="hybrid_score",
+            ascending=False
+        )
 
         hybrid_df = hybrid_df.head(top_n)
+
         hybrid_df = hybrid_df.reset_index(drop=True)
 
-        return hybrid_df
+        return hybrid_df[
+            [
+                "product_name",
+                "brand_name",
+                "breadcrumbs",
+                "weighted_rating",
+                "hybrid_score"
+            ]
+        ]
