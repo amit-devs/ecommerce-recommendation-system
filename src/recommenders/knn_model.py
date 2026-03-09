@@ -6,20 +6,29 @@ class KNNRecommender:
 
     def __init__(self, data_path="data/processed/cleaned_products.csv"):
 
-        # Load dataset
-        self.df = pd.read_csv(data_path)
+        df = pd.read_csv(data_path)
 
-        # Create user-item matrix
-        self.user_item_matrix = self.df.pivot_table(
+        # Product-level dataset
+        self.df = (
+            df.sort_values("weighted_rating", ascending=False)
+              .drop_duplicates(subset="product_id")
+              .reset_index(drop=True)
+        )
+
+        # User-item matrix (for collaborative filtering)
+        self.user_item_matrix = df.pivot_table(
             index="product_id",
             columns="user_id",
             values="rating",
             fill_value=0
         )
 
-        # Create product mappings
-        product_info = self.df[["product_id", "product_name"]].drop_duplicates()
+        # Product information
+        product_info = self.df[
+            ["product_id", "product_name", "brand_name", "breadcrumbs", "weighted_rating"]
+        ]
 
+        # Mappings
         self.product_id_to_name = dict(
             zip(product_info.product_id, product_info.product_name)
         )
@@ -28,7 +37,7 @@ class KNNRecommender:
             zip(product_info.product_name, product_info.product_id)
         )
 
-        # Initialize KNN model
+        # KNN model
         self.model = NearestNeighbors(
             metric="cosine",
             algorithm="brute"
@@ -41,24 +50,35 @@ class KNNRecommender:
     # Recommendation Function
     # ---------------------------------------------------
 
-    def recommend(self, product_name, top_n=5):
+    def recommend(self, query, top_n=5):
 
-        # Check if product exists
-        if product_name not in self.product_name_to_id:
+        query = query.lower()
+
+        # Keyword search
+        matches = self.df[
+            self.df["product_name"].str.lower().str.contains(query, na=False)
+        ]
+
+        if matches.empty:
             return None
 
-        product_id = self.product_name_to_id[product_name]
+        # Select best match
+        product_row = matches.iloc[0]
+        product_id = product_row["product_id"]
+        product_category = product_row["breadcrumbs"]
 
         if product_id not in self.user_item_matrix.index:
             return None
 
-        # Get product vector
         product_vector = self.user_item_matrix.loc[[product_id]]
 
-        # Find nearest neighbors
-        distances, indices = self.model.kneighbors(product_vector, n_neighbors=top_n + 1)
+        distances, indices = self.model.kneighbors(
+            product_vector,
+            n_neighbors=top_n * 10
+        )
 
-        recommendations = []
+        same_category = []
+        other_products = []
 
         for idx in indices.flatten():
 
@@ -67,9 +87,34 @@ class KNNRecommender:
             if similar_product_id == product_id:
                 continue
 
-            similar_product_name = self.product_id_to_name.get(similar_product_id)
+            product_data = self.df[self.df["product_id"] == similar_product_id]
 
-            if similar_product_name not in recommendations:
-                recommendations.append(similar_product_name)
+            if product_data.empty:
+                continue
 
-        return recommendations[:top_n]
+            product_info = product_data.iloc[0]
+
+            if product_info["breadcrumbs"] == product_category:
+                same_category.append(product_info)
+            else:
+                other_products.append(product_info)
+
+        # Prioritize same category
+        results = same_category[:top_n]
+
+        if len(results) < top_n:
+            remaining = top_n - len(results)
+            results.extend(other_products[:remaining])
+
+        results_df = pd.DataFrame(results)[
+            [
+                "product_name",
+                "brand_name",
+                "breadcrumbs",
+                "weighted_rating"
+            ]
+        ]
+
+        results_df = results_df.drop_duplicates(subset="product_name")
+
+        return results_df.head(top_n)
