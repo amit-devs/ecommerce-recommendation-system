@@ -1,10 +1,10 @@
 from src.recommenders.content_based import ContentBasedRecommender
 from src.recommenders.knn_model import KNNRecommender
 from src.recommenders.hybrid import HybridRecommender
+from src.recommenders.popularity import PopularityRecommender
 
 from sklearn.metrics import confusion_matrix, accuracy_score
 import pandas as pd
-
 
 DATA_PATH = "data/processed/cleaned_products.csv"
 
@@ -12,7 +12,6 @@ DATA_PATH = "data/processed/cleaned_products.csv"
 # ---------------------------------------------------
 # Evaluation Function
 # ---------------------------------------------------
-
 def evaluate_results(results):
 
     df = pd.read_csv(DATA_PATH)
@@ -58,7 +57,6 @@ def evaluate_results(results):
 # ---------------------------------------------------
 # Content-Based Model
 # ---------------------------------------------------
-
 def run_content_based():
 
     recommender = ContentBasedRecommender(
@@ -85,12 +83,9 @@ def run_content_based():
 # ---------------------------------------------------
 # KNN Model
 # ---------------------------------------------------
-
 def run_knn():
 
-    recommender = KNNRecommender(
-        data_path=DATA_PATH
-    )
+    recommender = KNNRecommender(data_path=DATA_PATH)
 
     product = input("Enter product name: ")
 
@@ -111,12 +106,9 @@ def run_knn():
 # ---------------------------------------------------
 # Hybrid Model
 # ---------------------------------------------------
-
 def run_hybrid():
 
-    recommender = HybridRecommender(
-        data_path=DATA_PATH
-    )
+    recommender = HybridRecommender(data_path=DATA_PATH)
 
     product = input("Enter product name: ")
 
@@ -146,15 +138,38 @@ def run_hybrid():
 
 
 # ---------------------------------------------------
+# Popularity Model
+# ---------------------------------------------------
+def run_popularity():
+
+    recommender = PopularityRecommender(data_path=DATA_PATH)
+
+    results = recommender.get_top_products(top_n=5)
+
+    print("\nTop Popular Products:\n")
+
+    for _, row in results.iterrows():
+        print(
+            f"{row['product_name']} | "
+            f"{row['brand_name']} | "
+            f"{row['breadcrumbs']} | "
+            f"Rating: {round(row['weighted_rating'],2)}"
+        )
+
+    evaluate_results(results)
+
+
+# ---------------------------------------------------
 # CLI Menu
 # ---------------------------------------------------
-
 def main():
 
     print("\nChoose Recommendation Model")
+
     print("1 → Content Based Recommender")
     print("2 → KNN Collaborative Filtering")
     print("3 → Hybrid Recommender")
+    print("4 → Popularity Recommender")
 
     choice = input("Enter choice: ")
 
@@ -166,6 +181,9 @@ def main():
 
     elif choice == "3":
         run_hybrid()
+
+    elif choice == "4":
+        run_popularity()
 
     else:
         print("Invalid choice")
