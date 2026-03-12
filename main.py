@@ -4,55 +4,11 @@ from src.recommenders.hybrid import HybridRecommender
 from src.recommenders.popularity import PopularityRecommender
 from src.recommenders.item_similarity import ItemSimilarityRecommender
 
-from sklearn.metrics import confusion_matrix, accuracy_score
+from src.evaluation.metrics import evaluate_results
+
 import pandas as pd
 
 DATA_PATH = "data/processed/cleaned_products.csv"
-
-
-# ---------------------------------------------------
-# Evaluation Function
-# ---------------------------------------------------
-
-def evaluate_results(results):
-
-    df = pd.read_csv(DATA_PATH)
-
-    if results is None or len(results) == 0:
-        print("\nNo recommendations to evaluate.")
-        return
-
-    # Ensure DataFrame format
-    if isinstance(results, list):
-        rec_df = pd.DataFrame({"product_name": results})
-    else:
-        rec_df = results.copy()
-
-    merged = rec_df.merge(
-        df[["product_name", "rating"]],
-        on="product_name",
-        how="left"
-    )
-
-    merged["rating"] = merged["rating"].fillna(0)
-
-    # Define relevance
-    merged["actual"] = merged["rating"].apply(lambda x: 1 if x >= 4 else 0)
-
-    # Recommended items are predicted relevant
-    merged["predicted"] = 1
-
-    y_true = merged["actual"]
-    y_pred = merged["predicted"]
-
-    acc = accuracy_score(y_true, y_pred)
-    cm = confusion_matrix(y_true, y_pred)
-
-    print("\nModel Evaluation")
-    print("---------------------------")
-    print("Accuracy:", round(acc, 4))
-    print("\nConfusion Matrix:")
-    print(cm)
 
 
 # ---------------------------------------------------
