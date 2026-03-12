@@ -2,6 +2,7 @@ from src.recommenders.content_based import ContentBasedRecommender
 from src.recommenders.knn_model import KNNRecommender
 from src.recommenders.hybrid import HybridRecommender
 from src.recommenders.popularity import PopularityRecommender
+from src.recommenders.item_similarity import ItemSimilarityRecommender
 
 from sklearn.metrics import confusion_matrix, accuracy_score
 import pandas as pd
@@ -12,6 +13,7 @@ DATA_PATH = "data/processed/cleaned_products.csv"
 # ---------------------------------------------------
 # Evaluation Function
 # ---------------------------------------------------
+
 def evaluate_results(results):
 
     df = pd.read_csv(DATA_PATH)
@@ -49,7 +51,6 @@ def evaluate_results(results):
     print("\nModel Evaluation")
     print("---------------------------")
     print("Accuracy:", round(acc, 4))
-
     print("\nConfusion Matrix:")
     print(cm)
 
@@ -57,6 +58,7 @@ def evaluate_results(results):
 # ---------------------------------------------------
 # Content-Based Model
 # ---------------------------------------------------
+
 def run_content_based():
 
     recommender = ContentBasedRecommender(
@@ -83,6 +85,7 @@ def run_content_based():
 # ---------------------------------------------------
 # KNN Model
 # ---------------------------------------------------
+
 def run_knn():
 
     recommender = KNNRecommender(data_path=DATA_PATH)
@@ -106,6 +109,7 @@ def run_knn():
 # ---------------------------------------------------
 # Hybrid Model
 # ---------------------------------------------------
+
 def run_hybrid():
 
     recommender = HybridRecommender(data_path=DATA_PATH)
@@ -140,6 +144,7 @@ def run_hybrid():
 # ---------------------------------------------------
 # Popularity Model
 # ---------------------------------------------------
+
 def run_popularity():
 
     recommender = PopularityRecommender(data_path=DATA_PATH)
@@ -160,16 +165,41 @@ def run_popularity():
 
 
 # ---------------------------------------------------
+# Item Similarity Model
+# ---------------------------------------------------
+
+def run_item_similarity():
+
+    recommender = ItemSimilarityRecommender(data_path=DATA_PATH)
+
+    product = input("Enter product name: ")
+
+    results = recommender.recommend(product, top_n=5)
+
+    if results is None or len(results) == 0:
+        print("Product not found in dataset.")
+        return
+
+    print("\nItem Similarity Recommendations:\n")
+
+    for _, row in results.iterrows():
+        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
+
+    evaluate_results(results)
+
+
+# ---------------------------------------------------
 # CLI Menu
 # ---------------------------------------------------
+
 def main():
 
     print("\nChoose Recommendation Model")
-
     print("1 → Content Based Recommender")
     print("2 → KNN Collaborative Filtering")
     print("3 → Hybrid Recommender")
     print("4 → Popularity Recommender")
+    print("5 → Item Similarity Recommender")
 
     choice = input("Enter choice: ")
 
@@ -184,6 +214,9 @@ def main():
 
     elif choice == "4":
         run_popularity()
+
+    elif choice == "5":
+        run_item_similarity()
 
     else:
         print("Invalid choice")
