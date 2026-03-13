@@ -1,23 +1,35 @@
-The system includes multiple recommendation algorithms:
+# E-Commerce Recommendation System
 
-1. Popularity-Based Recommender
-2. Content-Based Recommender
-3. KNN Collaborative Filtering
-4. Item Similarity Recommender
-5. SVD Matrix Factorization
-6. Hybrid Recommender
+A **Machine Learning based E-Commerce Recommendation System** that recommends relevant products using multiple recommendation algorithms.
 
-* Currently Implemented:
+The system uses several recommendation techniques including:
 
-- Content-Based Recommender
+- Content-Based Filtering
+- Collaborative Filtering (KNN)
+- Popularity-Based Recommendation
+- Item Similarity Recommendation
+- Hybrid Recommendation
+
+The system runs through a **Command Line Interface (CLI)** and evaluates model performance using multiple **machine learning evaluation metrics**.
+
+---
+
+# Project Contributors
+
+**Amit**
+
+Responsible for:
+- Content Based Recommender
 - KNN Collaborative Filtering
 - Hybrid Recommender
+- Evaluation Pipeline
 
-* Features
+**Shouri**
 
-- Product recommendation using machine learning
-- Content similarity using TF-IDF
-- Collaborative filtering using KNN
-- Hybrid recommendation system
-- Duplicate removal in recommendations
-- Error handling for missing products
+Responsible for:
+- Popularity Recommender
+- Item Similarity Recommender
+- SVD Recommender *(future extension)*
+
+---
+
