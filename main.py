@@ -5,55 +5,13 @@ from src.recommenders.popularity import PopularityRecommender
 from src.recommenders.item_similarity import ItemSimilarityRecommender
 from src.recommenders.svd_model import SVDRecommender
 
-from sklearn.metrics import confusion_matrix, accuracy_score
+# Import evaluation function
+from src.evaluation.metrics import evaluate_results
+
 import pandas as pd
 
+
 DATA_PATH = "data/processed/cleaned_products.csv"
-
-
-# ---------------------------------------------------
-# Evaluation Function
-# ---------------------------------------------------
-
-def evaluate_results(results):
-
-    df = pd.read_csv(DATA_PATH)
-
-    if results is None or len(results) == 0:
-        print("\nNo recommendations to evaluate.")
-        return
-
-    # Ensure DataFrame format
-    if isinstance(results, list):
-        rec_df = pd.DataFrame({"product_name": results})
-    else:
-        rec_df = results.copy()
-
-    merged = rec_df.merge(
-        df[["product_name", "rating"]],
-        on="product_name",
-        how="left"
-    )
-
-    merged["rating"] = merged["rating"].fillna(0)
-
-    # Define relevance
-    merged["actual"] = merged["rating"].apply(lambda x: 1 if x >= 4 else 0)
-
-    # Recommended items are predicted relevant
-    merged["predicted"] = 1
-
-    y_true = merged["actual"]
-    y_pred = merged["predicted"]
-
-    acc = accuracy_score(y_true, y_pred)
-    cm = confusion_matrix(y_true, y_pred)
-
-    print("\nModel Evaluation")
-    print("---------------------------")
-    print("Accuracy:", round(acc, 4))
-    print("\nConfusion Matrix:")
-    print(cm)
 
 
 # ---------------------------------------------------
@@ -78,10 +36,7 @@ def run_content_based():
     print("\nContent-Based Recommendations:\n")
 
     for _, row in results.iterrows():
-        print(
-            f"{row['product_name']} | "
-            f"Rating: {round(row['weighted_rating'],2)}"
-        )
+        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
 
     evaluate_results(results)
 
@@ -92,7 +47,9 @@ def run_content_based():
 
 def run_knn():
 
-    recommender = KNNRecommender(data_path=DATA_PATH)
+    recommender = KNNRecommender(
+        data_path=DATA_PATH
+    )
 
     product = input("Enter product name: ")
 
@@ -105,10 +62,7 @@ def run_knn():
     print("\nKNN Recommendations:\n")
 
     for _, row in results.iterrows():
-        print(
-            f"{row['product_name']} | "
-            f"Rating: {round(row['weighted_rating'],2)}"
-        )
+        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
 
     evaluate_results(results)
 
@@ -119,7 +73,9 @@ def run_knn():
 
 def run_hybrid():
 
-    recommender = HybridRecommender(data_path=DATA_PATH)
+    recommender = HybridRecommender(
+        data_path=DATA_PATH
+    )
 
     product = input("Enter product name: ")
 
@@ -154,19 +110,20 @@ def run_hybrid():
 
 def run_popularity():
 
-    recommender = PopularityRecommender(data_path=DATA_PATH)
+    recommender = PopularityRecommender(
+        data_path=DATA_PATH
+    )
 
-    results = recommender.get_top_products(top_n=5)
+    results = recommender.recommend(top_n=5)
 
-    print("\nTop Popular Products:\n")
+    if results is None or len(results) == 0:
+        print("No recommendations available.")
+        return
+
+    print("\nPopularity-Based Recommendations:\n")
 
     for _, row in results.iterrows():
-        print(
-            f"{row['product_name']} | "
-            f"{row['brand_name']} | "
-            f"{row['breadcrumbs']} | "
-            f"Rating: {round(row['weighted_rating'],2)}"
-        )
+        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
 
     evaluate_results(results)
 
@@ -177,23 +134,22 @@ def run_popularity():
 
 def run_item_similarity():
 
-    recommender = ItemSimilarityRecommender(data_path=DATA_PATH)
+    recommender = ItemSimilarityRecommender(
+        data_path=DATA_PATH
+    )
 
     product = input("Enter product name: ")
 
     results = recommender.recommend(product, top_n=5)
 
-    if results is None or len(results) == 0:
+    if results is None:
         print("Product not found in dataset.")
         return
 
-    print("\nItem Similarity Recommendations:\n")
+    print("\nItem-Similarity Recommendations:\n")
 
     for _, row in results.iterrows():
-        print(
-            f"{row['product_name']} | "
-            f"Rating: {round(row['weighted_rating'],2)}"
-        )
+        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
 
     evaluate_results(results)
 
@@ -204,25 +160,22 @@ def run_item_similarity():
 
 def run_svd():
 
-    recommender = SVDRecommender(data_path=DATA_PATH)
+    recommender = SVDRecommender(
+        data_path=DATA_PATH
+    )
 
     product = input("Enter product name: ")
 
     results = recommender.recommend(product, top_n=5)
 
-    if results is None or len(results) == 0:
+    if results is None:
         print("Product not found in dataset.")
         return
 
     print("\nSVD Recommendations:\n")
 
     for _, row in results.iterrows():
-        print(
-            f"{row['product_name']} | "
-            f"{row['brand_name']} | "
-            f"{row['breadcrumbs']} | "
-            f"Rating: {round(row['weighted_rating'],2)}"
-        )
+        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
 
     evaluate_results(results)
 

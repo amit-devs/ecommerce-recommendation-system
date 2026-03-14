@@ -10,35 +10,42 @@ class SVDRecommender:
         # Load dataset
         self.data = pd.read_csv(data_path)
 
-        # Create user-item matrix
+        # Create USER-ITEM matrix
         user_item = self.data.pivot_table(
-            index="product_name",
-            columns="user_id",
+            index="user_id",
+            columns="product_name",
             values="rating",
             fill_value=0
         )
 
-        self.product_names = user_item.index
+        # Transpose → product matrix
+        self.product_matrix = user_item.T
+
+        self.product_names = list(self.product_matrix.index)
 
         # Apply SVD
-        svd = TruncatedSVD(n_components=50)
+        svd = TruncatedSVD(n_components=50, random_state=42)
 
-        self.matrix_reduced = svd.fit_transform(user_item)
+        self.product_features = svd.fit_transform(self.product_matrix)
 
         # Compute similarity
-        self.similarity_matrix = cosine_similarity(self.matrix_reduced)
+        self.similarity_matrix = cosine_similarity(self.product_features)
 
-        # Metadata
+        # Product metadata
         self.products = (
-            self.data.sort_values("weighted_rating", ascending=False)
+            self.data
+            .sort_values("weighted_rating", ascending=False)
             .drop_duplicates(subset="product_name")
             .reset_index(drop=True)
         )
+
+        self.product_info = self.products.set_index("product_name")
 
     def recommend(self, query, top_n=5):
 
         query = query.lower()
 
+        # Find product
         matches = self.products[
             self.products["product_name"]
             .str.lower()
@@ -50,19 +57,59 @@ class SVDRecommender:
 
         product = matches.iloc[0]["product_name"]
 
-        idx = list(self.product_names).index(product)
+        if product not in self.product_names:
+            return None
 
+        idx = self.product_names.index(product)
+
+        # Similarity scores
         scores = list(enumerate(self.similarity_matrix[idx]))
 
         scores = sorted(scores, key=lambda x: x[1], reverse=True)
 
+        # Get main category keyword
+        category = self.product_info.loc[product]["breadcrumbs"].lower()
+        category_keyword = category.split("›")[-1].strip()
+
         recommendations = []
 
-        for i, score in scores[1:top_n+1]:
-            recommendations.append(self.product_names[i])
+        # First pass → same category
+        for i, score in scores[1:200]:
+
+            rec_product = self.product_names[i]
+
+            if rec_product not in self.product_info.index:
+                continue
+
+            rec_category = self.product_info.loc[rec_product]["breadcrumbs"].lower()
+
+            if category_keyword in rec_category:
+                recommendations.append((rec_product, score))
+
+            if len(recommendations) >= top_n:
+                break
+
+        # Second pass → fill remaining slots if needed
+        if len(recommendations) < top_n:
+
+            for i, score in scores[1:]:
+
+                rec_product = self.product_names[i]
+
+                if rec_product == product:
+                    continue
+
+                if rec_product not in [r[0] for r in recommendations]:
+
+                    recommendations.append((rec_product, score))
+
+                if len(recommendations) >= top_n:
+                    break
+
+        rec_names = [r[0] for r in recommendations]
 
         results = self.products[
-            self.products["product_name"].isin(recommendations)
+            self.products["product_name"].isin(rec_names)
         ][[
             "product_name",
             "brand_name",
