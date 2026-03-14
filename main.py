@@ -3,6 +3,7 @@ from src.recommenders.knn_model import KNNRecommender
 from src.recommenders.hybrid import HybridRecommender
 from src.recommenders.popularity import PopularityRecommender
 from src.recommenders.item_similarity import ItemSimilarityRecommender
+from src.recommenders.svd_model import SVDRecommender
 
 from sklearn.metrics import confusion_matrix, accuracy_score
 import pandas as pd
@@ -77,7 +78,10 @@ def run_content_based():
     print("\nContent-Based Recommendations:\n")
 
     for _, row in results.iterrows():
-        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
+        print(
+            f"{row['product_name']} | "
+            f"Rating: {round(row['weighted_rating'],2)}"
+        )
 
     evaluate_results(results)
 
@@ -101,7 +105,10 @@ def run_knn():
     print("\nKNN Recommendations:\n")
 
     for _, row in results.iterrows():
-        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
+        print(
+            f"{row['product_name']} | "
+            f"Rating: {round(row['weighted_rating'],2)}"
+        )
 
     evaluate_results(results)
 
@@ -183,7 +190,39 @@ def run_item_similarity():
     print("\nItem Similarity Recommendations:\n")
 
     for _, row in results.iterrows():
-        print(f"{row['product_name']} | Rating: {round(row['weighted_rating'],2)}")
+        print(
+            f"{row['product_name']} | "
+            f"Rating: {round(row['weighted_rating'],2)}"
+        )
+
+    evaluate_results(results)
+
+
+# ---------------------------------------------------
+# SVD Model
+# ---------------------------------------------------
+
+def run_svd():
+
+    recommender = SVDRecommender(data_path=DATA_PATH)
+
+    product = input("Enter product name: ")
+
+    results = recommender.recommend(product, top_n=5)
+
+    if results is None or len(results) == 0:
+        print("Product not found in dataset.")
+        return
+
+    print("\nSVD Recommendations:\n")
+
+    for _, row in results.iterrows():
+        print(
+            f"{row['product_name']} | "
+            f"{row['brand_name']} | "
+            f"{row['breadcrumbs']} | "
+            f"Rating: {round(row['weighted_rating'],2)}"
+        )
 
     evaluate_results(results)
 
@@ -200,6 +239,7 @@ def main():
     print("3 → Hybrid Recommender")
     print("4 → Popularity Recommender")
     print("5 → Item Similarity Recommender")
+    print("6 → SVD Matrix Factorization")
 
     choice = input("Enter choice: ")
 
@@ -217,6 +257,9 @@ def main():
 
     elif choice == "5":
         run_item_similarity()
+
+    elif choice == "6":
+        run_svd()
 
     else:
         print("Invalid choice")
