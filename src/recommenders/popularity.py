@@ -11,6 +11,9 @@ class PopularityRecommender:
         self.data = self.data.drop_duplicates(subset=["product_name"])
 
     def get_top_products(self, top_n=5):
+        """
+        Returns top N products based on weighted rating
+        """
 
         # Sort products by weighted rating
         df = self.data.sort_values(
@@ -26,3 +29,9 @@ class PopularityRecommender:
         ]].head(top_n)
 
         return results
+
+    def recommend(self, top_n=5):
+        """
+        Wrapper method so main.py can call recommend()
+        """
+        return self.get_top_products(top_n)
