@@ -23,3 +23,7 @@ Recommends products based on similarity between product attributes such as categ
 Collaborative Filtering (KNN)
 
 Uses user-item interaction data to recommend products based on similarity using the K-Nearest Neighbors algorithm.
+
+Hybrid Recommendation System
+
+Combines content-based and collaborative filtering to improve recommendation quality.
