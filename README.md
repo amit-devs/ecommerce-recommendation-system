@@ -12,3 +12,10 @@ Modular and scalable project architecture
 Command Line Interface for generating recommendations
 Comparison of multiple recommendation strategies
 Clean and organized code structure
+🤖 Recommendation Algorithms Implemented
+
+The system includes the following recommendation techniques:
+
+Content-Based Filtering
+
+Recommends products based on similarity between product attributes such as category, metadata, and text features.
