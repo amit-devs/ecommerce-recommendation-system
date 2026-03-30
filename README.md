@@ -12,18 +12,6 @@ Modular and scalable project architecture
 Command Line Interface for generating recommendations
 Comparison of multiple recommendation strategies
 Clean and organized code structure
-🤖 Recommendation Algorithms Implemented
 
 The system includes the following recommendation techniques:
 
-Content-Based Filtering
-
-Recommends products based on similarity between product attributes such as category, metadata, and text features.
-
-Collaborative Filtering (KNN)
-
-Uses user-item interaction data to recommend products based on similarity using the K-Nearest Neighbors algorithm.
-
-Hybrid Recommendation System
-
-Combines content-based and collaborative filtering to improve recommendation quality.
