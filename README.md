@@ -48,7 +48,7 @@ Recommends products similar to a given product using **item-to-item similarity t
 
 ### 🔹 SVD Matrix Factorization
 
-Uses **Singular Value Decomposition** to learn hidden relationships between users and products.
+Uses **Singular Value Decomposition (SVD)** to learn hidden relationships between users and products.
 
 ---
 
