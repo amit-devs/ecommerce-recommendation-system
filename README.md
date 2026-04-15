@@ -1,5 +1,7 @@
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Recommender%20System-green)
+![Status](https://img.shields.io/badge/Project-Completed-brightgreen)
+
 
 
 # 🛒 E-Commerce Recommendation System
