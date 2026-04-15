@@ -77,7 +77,7 @@ ML_Project
 ├── data
 │   ├── raw
 │   │   ├── product.csv
-│   │   └── dataset_file_2.csv
+│   │   └── review.csv
 │   │
 │   └── processed
 │       └── cleaned_products.csv
